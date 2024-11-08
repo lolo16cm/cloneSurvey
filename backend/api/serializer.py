@@ -14,17 +14,17 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 class RegisterSerializer(serializers.ModelSerializer):
-    # password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password = serializers.CharField(write_only=True, required=True)
-    re_password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'password','re_password']
+        fields = ['full_name', 'email', 'password', 'password2']
 
     def validate(self, attr):
-        if attr['password'] != attr['re_password']:
-            raise serializers.ValidationError({'password': 'password fields did not match'})
+        if attr['password'] != attr['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
         return attr
     
     def create(self, validated_data):
@@ -32,11 +32,12 @@ class RegisterSerializer(serializers.ModelSerializer):
             full_name=validated_data['full_name'],
             email=validated_data['email'],
         )
-        #due to more complex oeration, so the following lines is operated outsid the objects.create()
-        email_username = user.email.split('@')[0]
+
+        email_username, _ = user.email.split("@")
         user.username = email_username
         user.set_password(validated_data['password'])
         user.save()
+
         return user
 
 class UserSerializer(serializers.ModelSerializer):
@@ -44,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         #fileds will pass, so no sensitive fileds should be passed, eg opt 
-        fileds = '__all__'
+        fields = '__all__'
 
 class ProfileSerialiser(serializers.ModelSerializer):
     class Meta:
